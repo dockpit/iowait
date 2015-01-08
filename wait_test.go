@@ -12,6 +12,9 @@ import (
 
 func TestWaitForRegexpTimeout(t *testing.T) {
 	err := iowait.WaitForRegexp(strings.NewReader(""), regexp.MustCompile(`.*serving on.*`), time.Millisecond*10)
+
+	assert.IsType(t, iowait.TimeoutError{}, err)
+	assert.Contains(t, err.Error(), "10ms")
 	assert.Error(t, err)
 }
 
