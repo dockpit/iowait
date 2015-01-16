@@ -11,8 +11,13 @@ import (
 //error that is returned when WaitForRegexp times out
 type TimeoutError struct{ error }
 
-func timeoutError(to time.Duration, ls []string) TimeoutError {
-	return TimeoutError{fmt.Errorf("timed out waiting for match after %s, scanned lines: %s", to, ls)}
+func timeoutError(to time.Duration, exp *regexp.Regexp, ls []string) TimeoutError {
+	str := fmt.Sprintf("timed out waiting for match after %s waiting for pattern '%s', scanned lines:", to, exp)
+	for _, l := range ls {
+		str += "\n\t" + l
+	}
+
+	return TimeoutError{fmt.Errorf(str)}
 }
 
 //blocks the routine until a line in the given reader matches the given regex, if
@@ -35,7 +40,7 @@ func WaitForRegexp(r io.Reader, exp *regexp.Regexp, to time.Duration) error {
 
 	select {
 	case <-time.After(to):
-		return timeoutError(to, ls)
+		return timeoutError(to, exp, ls)
 	case <-found:
 	}
 
